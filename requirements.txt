@@ -1,7 +1,7 @@
-psutil
 pyrogram==2.0.106
 python-dotenv
 tgcrypto
+psutil
 requests
 flask
 aiohttp
