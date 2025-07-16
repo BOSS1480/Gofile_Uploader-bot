@@ -321,7 +321,6 @@ async def help_callback(client, callback_query):
     await callback_query.message.edit(
         text=help_text,
         reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("🔙 Back", callback_data="back_to_start")],
             [InlineKeyboardButton("📢 Updates Channel", url="https://t.me/Tj_Bots")]
         ]),
         disable_web_page_preview=True
