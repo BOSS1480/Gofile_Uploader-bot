@@ -1,0 +1,31 @@
+{
+  "name": "Gofile Uploader Bot",
+  "description": "A Telegram bot to upload files to gofile.io",
+  "repository": "https://github.com/SudoR2spr/Gofile_Uploader-bot",
+  "keywords": ["telegram", "bot", "gofile", "uploader"],
+  "stack": "container",
+  "env": {
+    "API_ID": {
+      "description": "Your Telegram API ID from my.telegram.org",
+      "required": true
+    },
+    "API_HASH": {
+      "description": "Your Telegram API Hash from my.telegram.org",
+      "required": true
+    },
+    "BOT_TOKEN": {
+      "description": "Your Telegram Bot Token from @BotFather",
+      "required": true
+    },
+    "MUST_JOIN": {
+      "description": "Username/ID of your Telegram channel/group (optional)",
+      "required": false
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  }
+}
