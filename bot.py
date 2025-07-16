@@ -9,7 +9,7 @@ import logging
 from flask import Flask
 from threading import Thread
 import time
-import psutil  # Added for server stats
+import psutil  # For server stats
 
 load_dotenv()
 
@@ -40,13 +40,11 @@ def human_readable_size(size, decimal_places=2):
     return f"{size:.{decimal_places}f} PB"
 
 async def progress(current, total, message, status_message, start_time, file_name, cancel_event):
-    # Only update every 5 seconds
     now = time.time()
     if hasattr(status_message, 'last_update') and now - status_message.last_update < 5:
         return
     status_message.last_update = now
 
-    # Check if cancellation is requested
     if cancel_event.is_set():
         raise asyncio.CancelledError("Download/upload cancelled by user")
 
@@ -97,7 +95,6 @@ async def upload_to_gofile(file_path, cancel_event):
                 data = aiohttp.FormData()
                 data.add_field('file', f, filename=os.path.basename(file_path))
                 async with session.post(upload_url, data=data) as response:
-                    # Check for cancellation during upload
                     if cancel_event.is_set():
                         raise asyncio.CancelledError("Upload cancelled by user")
                     result = await response.json()
@@ -112,7 +109,6 @@ async def handle_file(client, message):
     file_name = file.file_name
     file_size = file.file_size
     
-    # Create a cancellation event for this message
     cancel_event = asyncio.Event()
     cancel_events[message.id] = cancel_event
     
@@ -125,7 +121,6 @@ async def handle_file(client, message):
             [InlineKeyboardButton("❌ Cancel", callback_data=f"cancel_{message.id}")]
         ])
     )
-    # Store last update time on the message object
     status.last_update = time.time()
     
     if file_size > 4 * 1024 * 1024 * 1024:
@@ -136,7 +131,6 @@ async def handle_file(client, message):
     start_time = time.time()
     file_path = None
     try:
-        # Increment download count and data transferred
         stats["downloads"] += 1
         stats["total_data_transferred"] += file_size
         
@@ -156,7 +150,6 @@ async def handle_file(client, message):
         )
 
         link = await upload_to_gofile(file_path, cancel_event)
-        # Increment upload count
         stats["uploads"] += 1
         
         await status.edit(
@@ -178,7 +171,6 @@ async def handle_file(client, message):
     finally:
         if file_path and os.path.exists(file_path):
             os.remove(file_path)
-        # Clean up cancellation event
         if message.id in cancel_events:
             del cancel_events[message.id]
 
@@ -186,7 +178,7 @@ async def handle_file(client, message):
 async def cancel_upload(client, callback_query):
     message_id = int(callback_query.data.split("_")[1])
     if message_id in cancel_events:
-        cancel_events[message_id].set()  # Signal cancellation
+        cancel_events[message_id].set()
         await callback_query.message.edit(
             "❌ **Cancelling... Please wait.**",
             reply_markup=None
@@ -197,25 +189,23 @@ async def cancel_upload(client, callback_query):
 
 @bot.on_message(filters.command("status"))
 async def status_command(client, message):
-    # Fetch server stats using psutil
+    # Use the current working directory or a specific temp directory for disk usage
+    temp_dir = os.getcwd()  # Or specify a path like "./temp" if you use a specific directory
+    disk = psutil.disk_usage(temp_dir)
+    
     cpu_percent = psutil.cpu_percent(interval=1)
     memory = psutil.virtual_memory()
-    disk = psutil.disk_usage('/')
     
-    # Convert memory to GB
-    total_memory = memory.total / (1024 ** 3)  # Convert bytes to GB
-    used_memory = memory.used / (1024 ** 3)    # Convert bytes to GB
+    total_memory = memory.total / (1024 ** 3)
+    used_memory = memory.used / (1024 ** 3)
     memory_percent = memory.percent
     
-    # Format disk usage
-    total_disk = disk.total / (1024 ** 3)      # Convert bytes to GB
-    used_disk = disk.used / (1024 ** 3)        # Convert bytes to GB
+    total_disk = disk.total / (1024 ** 3)
+    used_disk = disk.used / (1024 ** 3)
     disk_percent = disk.percent
     
-    # Format total data transferred
     total_data = human_readable_size(stats["total_data_transferred"])
     
-    # Create progress bars
     cpu_bar = "█" * int(cpu_percent // 10) + "░" * (10 - int(cpu_percent // 10))
     memory_bar = "█" * int(memory_percent // 10) + "░" * (10 - int(memory_percent // 10))
     disk_bar = "█" * int(disk_percent // 10) + "░" * (10 - int(disk_percent // 10))
@@ -231,9 +221,59 @@ async def status_command(client, message):
         f"**Disk:** {disk_bar} {disk_percent:.1f}% — {used_disk:.2f}GB / {total_disk:.2f}GB"
     )
     
-    await message.reply(status_text)
+    await message.reply(
+        status_text,
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("🔄 Refresh", callback_data=f"refresh_status_{message.id}")]
+        ])
+    )
 
-# START COMMAND WITH IMAGE AND BUTTON
+@bot.on_callback_query(filters.regex("^refresh_status_"))
+async def refresh_status(client, callback_query):
+    message_id = int(callback_query.data.split("_")[2])
+    
+    # Re-fetch stats
+    temp_dir = os.getcwd()  # Or specify your temp directory
+    disk = psutil.disk_usage(temp_dir)
+    cpu_percent = psutil.cpu_percent(interval=1)
+    memory = psutil.virtual_memory()
+    
+    total_memory = memory.total / (1024 ** 3)
+    used_memory = memory.used / (1024 ** 3)
+    memory_percent = memory.percent
+    
+    total_disk = disk.total / (1024 ** 3)
+    used_disk = disk.used / (1024 ** 3)
+    disk_percent = disk.percent
+    
+    total_data = human_readable_size(stats["total_data_transferred"])
+    
+    cpu_bar = "█" * int(cpu_percent // 10) + "░" * (10 - int(cpu_percent // 10))
+    memory_bar = "█" * int(memory_percent // 10) + "░" * (10 - int(memory_percent // 10))
+    disk_bar = "█" * int(disk_percent // 10) + "░" * (10 - int(disk_percent // 10))
+    
+    status_text = (
+        f"🤖 **Bot Status**\n\n"
+        f"**Total Downloads:** {stats['downloads']}\n"
+        f"**Total Uploads:** {stats['uploads']}\n"
+        f"**Total Data Transferred:** {total_data}\n\n"
+        f"**Server Stats**\n"
+        f"**CPU:** {cpu_bar} {cpu_percent:.1f}%\n"
+        f"**RAM:** {memory_bar} {memory_percent:.1f}% — {used_memory:.2f}GB / {total_memory:.2f}GB\n"
+        f"**Disk:** {disk_bar} {disk_percent:.1f}% — {used_disk:.2f}GB / {total_disk:.2f}GB"
+    )
+    
+    try:
+        await callback_query.message.edit(
+            text=status_text,
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("🔄 Refresh", callback_data=f"refresh_status_{message_id}")]
+            ])
+        )
+        await callback_query.answer("Status refreshed.")
+    except Exception as e:
+        await callback_query.answer(f"Failed to refresh status: {e}", show_alert=True)
+
 @bot.on_message(filters.command("start"))
 async def start(client, message):
     image_url = "https://telegra.ph/file/3da7fe2febcfb9843853b-db22f1c6b1fc059305.jpg"
@@ -252,7 +292,6 @@ async def start(client, message):
 
     await message.reply_photo(photo=image_url, caption=caption, reply_markup=keyboard)
 
-# HELP CALLBACK HANDLER
 @bot.on_callback_query(filters.regex("^help$"))
 async def help_callback(client, callback_query):
     help_text = (
@@ -288,7 +327,6 @@ async def help_callback(client, callback_query):
         disable_web_page_preview=True
     )
 
-# BACK TO START CALLBACK HANDLER
 @bot.on_callback_query(filters.regex("^back_to_start$"))
 async def back_to_start(client, callback_query):
     image_url = "https://telegra.ph/file/3da7fe2febcfb9843853b-db22f1c6b1fc059305.jpg"
@@ -300,15 +338,14 @@ async def back_to_start(client, callback_query):
         "__Powered by @Tj_Bots__"
     )
     
-    await callback_query.message.delete()
-    await callback_query.message.reply_photo(
-        photo=image_url,
-        caption=caption,
+    await callback_query.message.edit_media(
+        media=pyrogram.types.InputMediaPhoto(media=image_url, caption=caption),
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("📢 Updates Channel", url="https://t.me/Tj_Bots")],
             [InlineKeyboardButton("🤖 How to Use", callback_data="help")]
         ])
     )
+    await callback_query.answer("Back to start.")
 
 # FLASK SERVER TO KEEP ALIVE
 def run():
