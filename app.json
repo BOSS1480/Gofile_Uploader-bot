@@ -1,9 +1,9 @@
 {
   "name": "Gofile Uploader Bot",
-  "description": "A Telegram bot to upload files to gofile.io",
-  "repository": "https://github.com/SudoR2spr/Gofile_Uploader-bot",
-  "keywords": ["telegram", "bot", "gofile", "uploader"],
-  "stack": "container",
+  "description": "A Telegram bot",
+  "repository": "https://github.com/BOSS1480/Gofile_Uploader-bot/tree/main",
+  "keywords": ["telegram", "bot", "pyrogram", "python"],
+  "stack": "heroku-22",
   "env": {
     "API_ID": {
       "description": "Your Telegram API ID from my.telegram.org",
