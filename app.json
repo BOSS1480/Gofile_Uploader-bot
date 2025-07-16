@@ -21,11 +21,5 @@
       "description": "Username/ID of your Telegram channel/group (optional)",
       "required": false
     }
-  },
-  "formation": {
-    "web": {
-      "quantity": 1,
-      "size": "basic"
-    }
   }
 }
