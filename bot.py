@@ -111,11 +111,11 @@ async def handle_file(client, message):
             f"📂 **File:** `{file_name}`\n"
             f"📦 **Size:** `{human_readable_size(file_size)}`\n\n"
             f"🔗 **Download Link:** [Click Here]({link})\n\n"
-            "🚀 Powered by @Opleech_WD",
+            "🚀 Powered by @Tj_Bots",
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("📥 Download Now", url=link)],
-                [InlineKeyboardButton("📢 Updates Channel", url="https://t.me/Opleech_WD")]
+                [InlineKeyboardButton("📢 Updates Channel", url="https://t.me/Tj_Bots")]
             ])
         )
     except Exception as e:
@@ -126,17 +126,17 @@ async def handle_file(client, message):
 # START COMMAND WITH IMAGE AND BUTTON
 @bot.on_message(filters.command("start"))
 async def start(client, message):
-    image_url = "https://graph.org/file/4e8a1172e8ba4b7a0bdfa.jpg"  # Customize your own image
+    image_url = "https://telegra.ph/file/3da7fe2febcfb9843853b-db22f1c6b1fc059305.jpg"  # Customize your own image
     caption = (
         "**Welcome to GoFile Uploader Bot!**\n\n"
         "Just send me any file (video, audio, or document) and I'll upload it to GoFile.\n\n"
         "⚡ Max file size: 4GB\n"
         "✅ Fast & Free\n\n"
-        "__Powered by @Opleech_WD__"
+        "__Powered by @Tj_Bots__"
     )
 
     keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("📢 Updates Channel", url="https://t.me/Opleech_WD")],
+        [InlineKeyboardButton("📢 Updates Channel", url="https://t.me/Tj_Bots")],
         [InlineKeyboardButton("🤖 How to Use", callback_data="help")]
     ])
 
@@ -163,15 +163,14 @@ async def help_callback(client, callback_query):
         "   - Large files may take longer to upload\n"
         "   - Keep stable internet connection during upload\n"
         "   - Files are automatically deleted after 10 days of inactivity (GoFile policy)\n\n"
-        "For support contact: @Opleech_WD\n\n"
-        "🚀 **Powered by @Opleech_WD**"
+        "🚀 **Powered by @Tj_Bots**"
     )
 
     await callback_query.message.edit(
         text=help_text,
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("🔙 Back", callback_data="back_to_start")],
-            [InlineKeyboardButton("📢 Updates Channel", url="https://t.me/Opleech_WD")]
+            [InlineKeyboardButton("📢 Updates Channel", url="https://t.me/Tj_Bots")]
         ]),
         disable_web_page_preview=True
     )
@@ -179,13 +178,13 @@ async def help_callback(client, callback_query):
 # BACK TO START CALLBACK HANDLER
 @bot.on_callback_query(filters.regex("^back_to_start$"))
 async def back_to_start(client, callback_query):
-    image_url = "https://graph.org/file/4e8a1172e8ba4b7a0bdfa.jpg"
+    image_url = "https://telegra.ph/file/3da7fe2febcfb9843853b-db22f1c6b1fc059305.jpg"
     caption = (
         "**Welcome to GoFile Uploader Bot!**\n\n"
         "Just send me any file (video, audio, or document) and I'll upload it to GoFile.\n\n"
         "⚡ Max file size: 4GB\n"
         "✅ Fast & Free\n\n"
-        "__Powered by @Opleech_WD__"
+        "__Powered by @Tj_Bots__"
     )
     
     await callback_query.message.delete()
@@ -193,7 +192,7 @@ async def back_to_start(client, callback_query):
         photo=image_url,
         caption=caption,
         reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("📢 Updates Channel", url="https://t.me/Opleech_WD")],
+            [InlineKeyboardButton("📢 Updates Channel", url="https://t.me/Tj_Bots")],
             [InlineKeyboardButton("🤖 How to Use", callback_data="help")]
         ])
     )
